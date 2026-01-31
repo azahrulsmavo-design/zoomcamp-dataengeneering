@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Shared Database for all Modules
+  postgres:
+    image: postgres:16
+    container_name: universal-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ny_taxi # Default DB unique to Mod 1
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db:/docker-entrypoint-initdb.d # Runs init.sql to create 'kestra' DB
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zoomcamp_net
+
+  # UI for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: universal-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "pgadmin@pgadmin.com"
+      PGADMIN_DEFAULT_PASSWORD: "pgadmin"
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - zoomcamp_net
+
+  # Workflow Orchestration (Module 2)
+  kestra:
+    image: kestra/kestra:v1.1
+    container_name: universal-kestra
+    command: server standalone
+    ports:
+      - "8081:8080"
+    environment:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            driver: org.postgresql.Driver
+            url: jdbc:postgresql://postgres:5432/kestra
+            username: postgres
+            password: postgres
+        kestra:
+          server:
+            listen:
+              address: "0.0.0.0"
+              port: 8080
+          repository:
+            type: postgres
+          queue:
+            type: postgres
+          storage:
+            type: local
+            local:
+              base-path: /app/storage
+          executor:
+            type: process
+    volumes:
+      - kestra_data:/app/storage
+    networks:
+      - zoomcamp_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  zoomcamp_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  kestra_data:

@@ -1,5 +1,9 @@
 # Module 1 Homework Solutions
 
+> [!IMPORTANT]
+> **Universal Docker Setup:** The Docker environment for this project has been consolidated. Please use the `docker-compose.yml` file located in the **project root** (`Zoomcamp project/`) to start Postgres and PgAdmin.
+> Run `docker-compose up -d` from the root directory.
+
 ## Question 1. Understanding Docker images
 
 **Answer: 25.3**
