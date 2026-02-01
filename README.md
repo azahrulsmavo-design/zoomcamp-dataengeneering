@@ -17,12 +17,11 @@ docker-compose up -d
 ```
 
 ### 2. Access Tools
-- **Kestra UI**: [http://localhost:8081](http://localhost:8081)
-- **PgAdmin**: [http://localhost:8080](http://localhost:8080)
+- **Kestra UI**: [http://localhost:8080](http://localhost:8080)
+- **PgAdmin**: [http://localhost:8082](http://localhost:8082)
   - User: `pgadmin@pgadmin.com`
   - Pass: `pgadmin`
-- **Database**:
-  - Host: `postgres`
-  - Port: `5432`
-  - User/Pass: `postgres`
+- **Databases**:
+  - `pgdatabase` (NYC Taxi): Port `5432`, User/Pass: `postgres`/`postgres`, DB: `ny_taxi`
+  - `kestra-postgres` (Metadata): Internal only, DB: `kestra`
 
