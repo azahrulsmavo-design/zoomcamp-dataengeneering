@@ -45,4 +45,6 @@ triggers:
     cron: "0 10 * * *"
     inputs:
       name: Sarah
+      username: postgres
+      password: postgresrue
     disabled: true

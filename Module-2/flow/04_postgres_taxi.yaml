@@ -3,6 +3,9 @@ namespace: zoomcamp
 description: |
   The CSV Data used in the course: https://github.com/DataTalksClub/nyc-tlc-data/releases
 
+concurrency:
+  limit: 1
+
 inputs:
   - id: taxi
     type: SELECT
@@ -35,6 +38,7 @@ tasks:
       file: "{{render(vars.file)}}"
       taxi: "{{inputs.taxi}}"
 
+  # ✅ Extract robust + show uncompressed size (for Question 1)
   - id: extract
     type: io.kestra.plugin.scripts.shell.Commands
     outputFiles:
@@ -42,7 +46,12 @@ tasks:
     taskRunner:
       type: io.kestra.plugin.core.runner.Process
     commands:
-      - wget -qO- https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{inputs.taxi}}/{{render(vars.file)}}.gz | gunzip > {{render(vars.file)}}
+      - set -eux
+      - URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{inputs.taxi}}/{{render(vars.file)}}.gz"
+      - echo "Downloading $URL"
+      - wget --tries=10 --waitretry=5 --timeout=30 -O "{{render(vars.file)}}.gz" "$URL"
+      - gunzip -f "{{render(vars.file)}}.gz"
+      - du -b "{{render(vars.file)}}" | awk '{print "UNCOMPRESSED_SIZE:", $1/1048576, "MiB"}'
 
   - id: if_yellow_taxi
     type: io.kestra.plugin.core.flow.If
@@ -257,7 +266,7 @@ tasks:
               S.trip_distance, S.fare_amount, S.extra, S.mta_tax, S.tip_amount, S.tolls_amount, S.ehail_fee,
               S.improvement_surcharge, S.total_amount, S.payment_type, S.trip_type, S.congestion_surcharge
             );
-  
+
   - id: purge_files
     type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
     description: This will remove output files. If you'd like to explore Kestra outputs, disable it.
@@ -266,5 +275,5 @@ pluginDefaults:
   - type: io.kestra.plugin.jdbc.postgresql
     values:
       url: jdbc:postgresql://pgdatabase:5432/ny_taxi
-      username: root
-      password: root
+      username: postgres
+      password: postgres
